@@ -8,12 +8,6 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-class ModuleManager(models.Manager):
-    def get_queryset(self):
-        modules = super().get_queryset()
-        for module in modules:
-            module.challenges = Challenge.objects.filter(module=module.id)
-        return modules
 
 class Module(models.Model):
     title = models.CharField(max_length=128)
@@ -22,8 +16,7 @@ class Module(models.Model):
     tests = models.ManyToManyField(Test)
     tinder_swipes = models.ManyToManyField(TinderSwipe)
     interactive_readings = models.ManyToManyField(InteractiveReading)
-    challenges = []
-    objects = ModuleManager()
+
 
 class Challenge(models.Model):
     title = models.CharField(max_length=128)
@@ -31,16 +24,24 @@ class Challenge(models.Model):
     valid_from = models.DateTimeField(default=datetime.now())
     valid_to = models.DateTimeField(default=datetime.now())
     points = models.IntegerField()
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="challenges")
     
     tests = models.ManyToManyField(Test)
     tinder_swipes = models.ManyToManyField(TinderSwipe)
     interactive_readings = models.ManyToManyField(InteractiveReading)
 
+
+class Article(models.Model):
+    title = models.CharField(max_length=256)
+    content = models.CharField(max_length=100000)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="articles")
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     total_score = models.IntegerField()
-    modules_progress = models.ManyToManyField(Module, through="Progress")
+    current_progress = models.ManyToManyField(Module, through="Progress")
+
 
 class Progress(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)

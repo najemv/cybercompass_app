@@ -23,6 +23,8 @@ admin.site.register(TestAnswer)
 admin.site.register(Module)
 admin.site.register(Challenge)
 admin.site.register(Profile)
+admin.site.register(Progress)
+admin.site.register(Article)
 
 
 

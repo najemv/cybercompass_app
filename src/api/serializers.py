@@ -1,23 +1,16 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
+
 
 class AnswerSerializer(serializers.Serializer):
     answer = serializers.CharField()
     is_correct = serializers.BooleanField()
     explanation = serializers.CharField()
 
+
 class QuestionSerializer(serializers.Serializer):
     question = serializers.CharField()
-    answers = serializers.ListField(child=AnswerSerializer())
-
-    #def create(self, validated_data):
-    #    answers = validated_data.pop('answers')
-    #    question = Question.objects.create(**validated_data)
-    #    question.answers = []
-    #    #Profile.objects.create(user=user, **profile_data)
-    #    for answer in answers:
-    #        a = Answer.objects.create(question=question, **answer)
-    #        question.answers.append(a)
-    #    return question
+    answers = AnswerSerializer(many=True)
 
 
 class ActivitySerializer(serializers.Serializer):
@@ -30,25 +23,24 @@ class TinderSwipeSerializer(ActivitySerializer):
     image = serializers.ImageField()
     question = QuestionSerializer()
 
+
 class TestSerializer(ActivitySerializer):
-    questions = serializers.ListField(child=QuestionSerializer())
+    questions = QuestionSerializer(many=True)
+
 
 class ReadingPartSerializer(serializers.Serializer):
     text = serializers.CharField()
     question = QuestionSerializer()
 
+
 class InteractiveReadingSerializer(ActivitySerializer):
-    parts = serializers.ListField(child=ReadingPartSerializer())
+    parts = ReadingPartSerializer(many=True)
 
 
-
-class ModuleSerializer(serializers.Serializer):
+class ArticleSerializer(serializers.Serializer):
     title = serializers.CharField()
-    description = serializers.CharField()
+    content = serializers.CharField()
 
-    tests = TestSerializer(many=True)
-    tinder_swipes = TinderSwipeSerializer(many=True)
-    interactive_readings = InteractiveReadingSerializer(many=True)
 
 class ChallengeSerializer(serializers.Serializer):
     title = serializers.CharField()
@@ -57,6 +49,35 @@ class ChallengeSerializer(serializers.Serializer):
     valid_to = serializers.DateField()
     points = serializers.DateField()
 
+
     tests = TestSerializer(many=True)
     tinder_swipes = TinderSwipeSerializer(many=True)
     interactive_readings = InteractiveReadingSerializer(many=True)
+
+
+class ModuleSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    description = serializers.CharField()
+    articles = ArticleSerializer(many=True)
+    challenges = ChallengeSerializer(many=True)
+    tests = TestSerializer(many=True)
+    tinder_swipes = TinderSwipeSerializer(many=True)
+    interactive_readings = InteractiveReadingSerializer(many=True)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "email", "first_name", "last_name"]
+
+
+class ProgressSerializer(serializers.Serializer):
+    current_score = serializers.IntegerField()
+    available = serializers.BooleanField
+    module = ModuleSerializer()
+
+
+class ProfileSerializer(serializers.Serializer):
+    user = UserSerializer()
+    total_score = serializers.IntegerField()
+    current_progress = ProgressSerializer(source="progress_set", many=True)

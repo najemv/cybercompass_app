@@ -7,70 +7,80 @@ from .models.tinder_swipe import *
 from .models.others import *
 from .helper import *
 from rest_framework.views import APIView
-from rest_framework import generics, mixins, status
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
+class ProfileView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Shows profile for the user who requests it.
+        """
+        profile = get_user_profile(request.user)
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
+
+
 class ModuleView(APIView):
-    def get(self, request, id=None):
-        if id is None:
-            modules = Module.objects.all()
-            serializer = ModuleSerializer(modules, many=True)
-            return Response(serializer.data)
-        else:
-            q = Question.objects.get(id=id)
-            q.answers = Answer.objects.filter(question=q.id)
-            serializer = QuestionSerializer(q)
-            return Response(serializer.data)
-
-
-class ChallengeView(generics.GenericAPIView,
-                    mixins.ListModelMixin,
-                    mixins.CreateModelMixin,
-                    mixins.UpdateModelMixin,
-                    mixins.DestroyModelMixin,
-                    mixins.RetrieveModelMixin):
-    serializer_class = ChallengeSerializer
-    queryset = Challenge.objects.all()
-    lookup_field = 'id'
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, id=None):
-        if id:
-            return self.retrieve(request, id)
-        return self.list(request)
-
-    def post(self, request):
-        return self.create(request)
-
-    def put(self, request, id=None):
-        return self.update(request, id)
-
-    def delete(self, request, id):
-        return self.destroy(request, id)
+        """
+        Shows list of all modules in the system (or just one).
+        """
+        modules = Module.objects.all()
+        serializer = ModuleSerializer(modules, many=True)
+        return Response(serializer.data)
 
 
-class QuestionView(APIView):
+class ChallengeView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, id=None):
-        if id is None:
-            questions = TestQuestion.objects.all()
-            serializer = QuestionSerializer(questions, many=True)
-            return Response(serializer.data)
-        else:
-            q = Question.objects.get(id=id)
-            q.answers = Answer.objects.filter(question=q.id)
-            serializer = QuestionSerializer(q)
-            return Response(serializer.data)
+        """
+        Shows list of all challenges in the system.
+        """
+        challenges = Challenge.objects.all()
+        serializer = ChallengeSerializer(challenges, many=True)
+        return Response(serializer.data)
 
-    #def post(self, request):
-    #    serializer = QuestionSerializer(data=request.data)
-#
-    #    if serializer.is_valid():
-    #        serializer.save()
-    #        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    #def put(self, request, id=None):
-    #    return self.update(request, id)
-#
-    #def delete(self, request, id):
-    #    return self.destroy(request, id)
+class ArticleView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id=None):
+        """
+        Shows list of all articles in the system.
+        """
+        articles = Article.objects.all()
+        serializer = ArticleSerializer(articles, many=True)
+        return Response(serializer.data)
+
+
+class ActivityView(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, id=None):
+        """
+        Shows list of all activities in the system.
+        """
+        tests = Test.objects.all()
+        tss = TinderSwipe.objects.all()
+        readings = InteractiveReading.objects.all()
+        tests_ser = TestSerializer(tests, many=True)
+        tss_ser = TinderSwipeSerializer(tss, many=True)
+        readings_ser = InteractiveReadingSerializer(readings, many=True)
+        return Response({
+            "tests" : tests_ser.data,
+            "tinder_swipes" : tss_ser.data,
+            "interactive_readings" : readings_ser.data
+        })
+

@@ -19,13 +19,9 @@ from api.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    path('modules/<int:id>', ModuleView().as_view()),
+    path('profile/', ProfileView().as_view()),
     path('modules/', ModuleView().as_view()),
-
-    path('challenge/<int:id>', ChallengeView().as_view()),
-    path('challenge/', ChallengeView().as_view()),
-
-    path('question/<int:id>', QuestionView().as_view()),
-    path('question/', QuestionView().as_view())
+    path('challenges/', ChallengeView().as_view()),
+    path('articles/', ArticleView().as_view()),
+    path('activities/', ActivityView().as_view())
 ]
